@@ -1,7 +1,11 @@
 # Mars-Rover
 Mars-Rover-Task
 
-PART I
+to run tests
+- npm install
+- npm test
+
+PART I (branch:: part-1)
 
 Rover Class Should be initiated (new Rover(x, y, direction))
 
@@ -28,3 +32,27 @@ Rover can:
         L --> to rotate the ROver to the left e.g (North to West)
 
 - isValidCommand: is a helper function to check if the command valid or not
+
+PART 2 (branch:: part-2)
+
+added functions & obstacles detection for Rover
+
+you can now initialize Rover with obstacles in the form [[x, y], [x1, y1]] default ones are [[1,4], [3,5], [7,4]]
+e.g new Rover(x, y, direction, obstacles)
+
+Rover is initialized with default status of ONLINE
+currently the only available status are STOPPED & ONLINE
+
+IF ROVER'S NEXT POSITION IS AN OBSTACLE ROVER STOPS AND REPORTS ITS POSITION & STATUS
+
+new functions for Rover:
+
+- checkStatus: will give either STOPPED or ONLINE
+
+- set status: you can manually set status [0 --> STOPPED, 1 --> ONLINE ] (e.g rover1.status = 0)
+
+- addObstacle: you can add to the obstacles even after initialization e.g rover1.addObstacle([1,1])
+
+- isObstacle: checks if the given coordinate is an obstacle e.g rover1.isObstacle([1,1])
+
+- getNextPosition: function that returns the Rover next position valid parameters are "F" and "B" for forwars and backwards respectively

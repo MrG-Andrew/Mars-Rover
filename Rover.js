@@ -5,66 +5,129 @@
 ///////////South
 
 class Rover {
-  constructor(x, y, direction) {
+  static DIRECTIONS = ["NORTH", "EAST", "SOUTH", "WEST"];
+  static STATUS = ["STOPPED", "ONLINE"];
+  constructor(
+    x,
+    y,
+    direction,
+    obstacles = [
+      [1, 4],
+      [3, 5],
+      [7, 4],
+    ]
+  ) {
     this.x = x;
     this.y = y;
-    this.dir = ["NORTH", "EAST", "SOUTH", "WEST"];
+    this.obstacles = obstacles;
+    this._status = 1;
     direction = direction.toUpperCase();
     // only thing that exits the whole class cause rover must not be initiated with invalid direction
-    if (this.dir.includes(direction)) {
-      this.direction = this.dir.indexOf(direction);
+    if (Rover.DIRECTIONS.includes(direction)) {
+      this.direction = Rover.DIRECTIONS.indexOf(direction);
     } else
       throw new Error(
         "FAILED TO INITIALIZE ROVER:: Invalid Direction, Valid Directions are NORTH, EAST, SOUTH, WEST"
       );
-    console.log("Rover Initialized Successfully::", this.report());
   }
 
-  _forward = {
+  #forward = {
     NORTH: () => this.y++,
     EAST: () => this.x++,
     SOUTH: () => this.y--,
     WEST: () => this.x--,
   };
 
-  _backward = {
+  #backward = {
     NORTH: () => this.y--,
     EAST: () => this.x--,
     SOUTH: () => this.y++,
     WEST: () => this.x++,
   };
 
-  _commands = {
+  #commands = {
     F: () => this.moveForward(),
     B: () => this.moveBackward(),
     L: () => this.rotateLeft(),
     R: () => this.rotateRight(),
   };
 
+  checkStatus() {
+    return Rover.STATUS[this._status];
+  }
+
+  set status(value) {
+    if (value in Rover.STATUS) {
+      this._status = value;
+    } else {
+      this._status = 0;
+    }
+  }
+
+  addObstacle(point) {
+    if (Array.isArray(point) && point.length === 2) {
+      this.obstacles.push(point);
+    } else {
+      throw new Error(
+        "INVALID OBSTACLE POINT\n point must be in the form [x, y]"
+      );
+    }
+  }
+
+  getNextPosition(direction) {
+    if (direction !== "F" && direction !== "B")
+      throw new Error("INVALID DIRECTION");
+
+    const deltas = {
+      NORTH: [0, 1],
+      EAST: [1, 0],
+      SOUTH: [0, -1],
+      WEST: [-1, 0],
+    };
+
+    const multiplier = direction === "F" ? 1 : -1;
+    const [dx, dy] = deltas[Rover.DIRECTIONS[this.direction]];
+    return [this.x + dx * multiplier, this.y + dy * multiplier];
+  }
+
+  isObstacle([x, y]) {
+    return this.obstacles.some(
+      (coordinate) => coordinate[0] === x && coordinate[1] === y
+    );
+  }
+
   report() {
-    return `Rover Current Location is (${this.x}, ${this.y}) Facing ${
-      this.dir[this.direction]
+    return `(${this.x}, ${this.y}) ${Rover.DIRECTIONS[this.direction]} ${
+      Rover.STATUS[this._status]
     }`;
   }
 
   moveForward() {
-    this._forward[this.dir[this.direction]]();
-    console.log(this.report());
+    if (this._status === 0) return;
+    const nextPosition = this.getNextPosition("F");
+    if (!this.isObstacle(nextPosition)) {
+      this.#forward[Rover.DIRECTIONS[this.direction]]();
+    } else {
+      this._status = 0;
+    }
   }
 
   moveBackward() {
-    this._backward[this.dir[this.direction]]();
-    console.log(this.report());
+    if (this._status === 0) return;
+    const nextPosition = this.getNextPosition("B");
+    if (!this.isObstacle(nextPosition)) {
+      this.#backward[Rover.DIRECTIONS[this.direction]]();
+    } else {
+      this._status = 0;
+    }
   }
 
   rotateRight() {
     this.direction = (this.direction + 1) % 4;
-    console.log(this.report());
   }
 
   rotateLeft() {
     this.direction = (this.direction + 3) % 4;
-    console.log(this.report());
   }
 
   /*
@@ -75,17 +138,24 @@ class Rover {
   */
   isValidCommand(commands) {
     return [...commands.toUpperCase()].every(
-      (command) => command in this._commands
+      (command) => command in this.#commands
     );
   }
 
   execute(commands) {
+    if (this._status === 0) return;
     for (let command of commands.toUpperCase()) {
-      command in this._commands ? this._commands[command]() : "INVALID COMMAND";
+      if (this._status === 0) break;
+      if (command in this.#commands) {
+        this.#commands[command]();
+      } else {
+        console.log("INVALID COMMAND");
+      }
     }
   }
 
   safeExecute(commands) {
+    if (this._status === 0) return;
     if (this.isValidCommand(commands)) {
       this.execute(commands);
     } else throw new Error("INVALID COMMAND");
@@ -93,9 +163,3 @@ class Rover {
 }
 
 export default Rover;
-
-let rover1 = new Rover(0, 0, "north");
-
-// rover1.execute("frl");
-rover1.execute("asfdasdfsadfkjbvdslkuywuqioerywuqenmxzbnbaehtw");
-// rover1.execute("f7f88");
